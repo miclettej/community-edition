@@ -55,7 +55,7 @@ const GettingStarted: React.FC = () => {
                                     create Workload Clusters.
                                 </div>
                             </div>
-                            <div cds-layout="grid cols:12">
+                            <div cds-layout="grid vertical gap:lg p:md">
                                 <CdsButton
                                     className="cluster-action-btn"
                                     status="primary"
