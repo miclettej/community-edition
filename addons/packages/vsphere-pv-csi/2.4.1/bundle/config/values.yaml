@@ -1,7 +1,0 @@
-#@data/values
-
----
-vspherePVCSI:
-  namespace: "vmware-system-csi"
-  supervisor_master_endpoint_hostname: "supervisor.default.svc"
-  supervisor_master_port: 6443

@@ -1,0 +1,34 @@
+name: Check - packages
+
+on:
+  pull_request:
+    types:
+      - assigned
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - "addons/packages/**"
+
+jobs:
+  checklint:
+    name: Unit test packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v1
+
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.17"
+        id: go
+
+      - name: Ensure dependencies installed
+        shell: bash
+        run: |
+          make ensure-deps
+
+      - name: Run test-packages
+        run: |
+          make test-packages

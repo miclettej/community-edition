@@ -116,15 +116,15 @@ for release in "${RELEASES[@]}"; do
     mkdir -p "${version_docs_dir}"
 
     echo "Copying doc content from tag ${release}"
-    cp -r "${ROOT_DIR}"/docs/site/content/docs/* "${version_docs_dir}"/
+    cp -r "${ROOT_DIR}"/docs/site/content/docs/edge/* "${version_docs_dir}"/
 
 done
 
-# Move generated content to the right place
-mkdir -p generated/docs/edge
-mv content/docs/* generated/docs/edge
-rm -fr content/docs/*
-mv generated/docs/* content/docs
-
 # Go back to the original tree state
 restore_tree
+
+# Move generated content to the right place
+mkdir -p generated/docs/edge
+mv content/docs/* generated/docs/
+rm -fr content/docs/*
+mv generated/docs/* content/docs

@@ -3,13 +3,16 @@
 #@data/values-schema
 #@schema/desc "OpenAPIv3 Schema for calico"
 ---
+#@schema/deprecated "Kept for backward compatibility"
 #@schema/desc "The namespace in which calico is deployed"
+#@schema/nullable
 namespace: kube-system
 #@schema/desc "Infrastructure provider in use"
 infraProvider: vsphere
 #@schema/desc "The IP family calico should be configured with"
 #@schema/nullable
 ipFamily: "ipv4,ipv6"
+#@schema/desc "The calico specific configurations"
 calico:
   #@schema/desc "Configuration for calico"
   config:
@@ -18,3 +21,43 @@ calico:
     clusterCIDR: "192.168.0.0/16,fd00:100:96::/48"
     #@schema/desc "Maximum transmission unit setting"
     vethMTU: "0"
+  #@schema/deprecated "Kept for backward compatibility"
+  #@schema/desc "The image repo and its pull policy"
+  #@schema/nullable
+  image:
+    #@schema/nullable
+    repository: ""
+    #@schema/nullable
+    pullPolicy: IfNotPresent
+  #@schema/deprecated "Kept for backward compatibility"
+  #@schema/desc "The calico cni image path and tag"
+  #@schema/nullable
+  cniImage:
+    #@schema/nullable
+    path: ""
+    #@schema/nullable
+    tag: ""
+  #@schema/deprecated "Kept for backward compatibility"
+  #@schema/desc "The calico node image path and tag"
+  #@schema/nullable
+  nodeImage:
+    #@schema/nullable
+    path: ""
+    #@schema/nullable
+    tag: ""
+  #@schema/deprecated "Kept for backward compatibility"
+  #@schema/desc "The calico pod2daemon image path and tag"
+  #@schema/nullable
+  podDaemonImage:
+    #@schema/nullable
+    path: ""
+    #@schema/nullable
+    tag: ""
+  #@schema/deprecated "Kept for backward compatibility"
+  #@schema/desc "The calico kube controllers image path and tag"
+  #@schema/nullable
+  kubeControllerImage:
+    #@schema/nullable
+    path: ""
+    #@schema/nullable
+    tag: ""

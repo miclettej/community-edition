@@ -2,7 +2,22 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - githubRelease:
-      url: https://api.github.com/repos/vmware-tanzu/package-for-kpack-dependencies/releases/64272438
+      url: https://api.github.com/repos/vmware-tanzu/package-for-kpack-dependencies/releases/65269157
     path: .
-  path: 0.0.9
+  path: 0.0.22
+- contents:
+  - githubRelease:
+      url: https://api.github.com/repos/vmware-tanzu/package-for-kpack-dependencies/releases/65678896
+    path: .
+  path: 0.0.27
+- contents:
+  - githubRelease:
+      url: https://api.github.com/repos/vmware-tanzu/package-for-kpack-dependencies/releases/66251886
+    path: .
+  path: 0.0.34
+- contents:
+  - githubRelease:
+      url: https://api.github.com/repos/vmware-tanzu/package-for-kpack-dependencies/releases/68019282
+    path: .
+  path: 0.0.39
 kind: LockConfig

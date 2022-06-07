@@ -12,7 +12,7 @@ spec:
     spec:
       fetch:
       - imgpkgBundle:
-          image: projects.registry.vmware.com/tce/secretgen-controller@sha256:95ee2b63de1f53f5938254e567845eb8641546cf0e0fd8f0e3d5aa9ef290c017
+          image: projects.registry.vmware.com/tce/secretgen-controller@sha256:e9631ae47719e5f3344589c40188206233e87efc8a58ab965a43dba3bc7787c0
       template:
       - ytt:
           paths:
@@ -29,6 +29,42 @@ spec:
       additionalProperties: false
       description: OpenAPIv3 Schema for secretgen-controller
       properties:
+        nodeSelector:
+          nullable: true
+          default: null
+          description: NodeSelector configuration applied to all the deployments
+        deployment:
+          type: object
+          additionalProperties: false
+          properties:
+            updateStrategy:
+              type: string
+              default: null
+              nullable: true
+              description: Update strategy of deployments
+            rollingUpdate:
+              type: object
+              additionalProperties: false
+              properties:
+                maxUnavailable:
+                  type: integer
+                  default: null
+                  nullable: true
+                  description: The maxUnavailable of rollingUpdate. Applied only if RollingUpdate is used as updateStrategy
+                maxSurge:
+                  type: integer
+                  default: null
+                  nullable: true
+                  description: The maxSurge of rollingUpdate. Applied only if RollingUpdate is used as updateStrategy
+        daemonset:
+          type: object
+          additionalProperties: false
+          properties:
+            updateStrategy:
+              type: string
+              default: null
+              nullable: true
+              description: Update strategy of daemonsets
         secretgenController:
           type: object
           additionalProperties: false
@@ -42,3 +78,23 @@ spec:
               type: boolean
               default: true
               description: Whether to create namespace specified for secretgen-controller
+            image:
+              type: object
+              additionalProperties: false
+              properties:
+                repository:
+                  type: string
+                  default: ""
+                  description: The repository of secretgen-controller image
+                path:
+                  type: string
+                  default: ""
+                  description: The path of image
+                tag:
+                  type: string
+                  default: ""
+                  description: The image tag
+                pullPolicy:
+                  type: string
+                  default: IfNotPresent
+                  description: The pull policy of image

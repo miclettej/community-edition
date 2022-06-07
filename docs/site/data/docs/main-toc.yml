@@ -15,12 +15,18 @@ toc:
           url: /getting-started
         - page: Deploy Unmanaged Clusters
           url: /getting-started-unmanaged
-    - title: Installation
+        - page: Deploy with Docker Desktop
+          url: /getting-started-docker
+        - page: Deploy Workloads
+          url: /getting-started-tanzu-workloads
+    - title: Install & Upgrade
       subfolderitems:
         - page: Plan Your Installation
           url: /installation-planning
         - page: Install the Tanzu CLI
           url: /cli-installation
+        - page: Upgrade the Tanzu CLI
+          url: /cli-upgrade
         - page: AWS
           url: /aws-intro
           subitems:
@@ -65,6 +71,8 @@ toc:
           url: /headless-install
         - page: Deploy Clusters with a non-default Kubernetes Versions
           url: /tkr-managed-cluster
+        - page: Upgrade Clusters
+          url: /upgrade-managed
     - title: Reference
       subfolderitems:
         - page: Glossary
@@ -96,11 +104,18 @@ toc:
             name: app-toolkit
             versions:
                 - 0.1.0
+                - 0.2.0
         - package:
             displayName: Cartographer
             name: cartographer
             versions:
                 - 0.2.2
+                - 0.3.0
+        - package:
+            displayName: Cartographer Catalog
+            name: cartographer-catalog
+            versions:
+                - 0.3.0
         - package:
             displayName: Cert Injection Webhook
             name: cert-injection-webhook
@@ -136,10 +151,21 @@ toc:
             versions:
                 - 1.7.5
         - package:
+            displayName: Fluxcd Helm Controller
+            name: fluxcd-helm-controller
+            versions:
+                - 0.17.2
+        - package:
+            displayName: Fluxcd Kustomize Controller
+            name: fluxcd-kustomize-controller
+            versions:
+                - 0.21.1
+        - package:
             displayName: Fluxcd Source Controller
             name: fluxcd-source-controller
             versions:
                 - 0.21.2
+                - 0.21.5
         - package:
             displayName: Gatekeeper
             name: gatekeeper
@@ -174,6 +200,14 @@ toc:
                 - 0.5.0
                 - 0.5.1
                 - 0.5.2
+                - 0.5.3
+        - package:
+            displayName: Kpack Dependencies
+            name: kpack-dependencies
+            versions:
+                - 0.0.9
+                - 0.0.22
+                - 0.0.27
         - package:
             displayName: Local Path Storage
             name: local-path-storage
@@ -215,6 +249,8 @@ toc:
           url: /scale-mgmt
         - page: Scale Workload Cluster
           url: /scale-cluster
+        - page: Manage Node Pools for Different VM Types
+          url: /node-pool
         - page: Delete Management Cluster
           url: /delete-mgmt
         - page: Delete Workload Cluster
@@ -252,10 +288,12 @@ toc:
         - page: Troubleshoot Clusters
           url: /trouble-faq
           subitems:
-            - subpage: Troubleshoot Clusters with Tanzu Diagnostics
+            - subpage: Troubleshoot Cluster Deployment with Tanzu Diagnostics
               suburl: /tanzu-diagnostics
-            - subpage: Troubleshoot Cluster Bootstrapping
-              suburl: /tsg-bootstrap
+            - subpage: Troubleshoot Cluster Deployment Manually
+              suburl: /ts-manually
+            - subpage: Access local and kubectl-based Logs
+              suburl: /logs
             - subpage: Cluster Debugging Tips
               suburl: /tanzu-debugging-tips
         - page: FAQ

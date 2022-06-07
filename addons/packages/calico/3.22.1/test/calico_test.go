@@ -26,11 +26,13 @@ var _ = Describe("Calico Ytt Templates", func() {
 		output    string
 		err       error
 
-		configDir             = filepath.Join(repo.RootDir(), "addons/packages/calico/3.22.1/bundle/config")
-		fileCalicoYaml        = filepath.Join(configDir, "upstream/calico.yaml")
-		fileCalicoOverlayYaml = filepath.Join(configDir, "overlay/calico_overlay.yaml")
-		fileValuesYaml        = filepath.Join(configDir, "values.yaml")
-		fileValuesStar        = filepath.Join(configDir, "values.star")
+		configDir                     = filepath.Join(repo.RootDir(), "addons/packages/calico/3.22.1/bundle/config")
+		fileCalicoYaml                = filepath.Join(configDir, "upstream/calico.yaml")
+		fileCalicoOverlayYaml         = filepath.Join(configDir, "overlay/calico-overlay.yaml")
+		fileUpdateStrategyOverlayYaml = filepath.Join(configDir, "overlay/update-strategy-overlay.yaml")
+		fileValuesYaml                = filepath.Join(configDir, "values.yaml")
+		fileValuesStar                = filepath.Join(configDir, "values.star")
+		fileSchemaYaml                = filepath.Join(configDir, "schema.yaml")
 	)
 
 	desiredDaemonSetAnnotations := map[string]string{
@@ -47,7 +49,7 @@ var _ = Describe("Calico Ytt Templates", func() {
 	})
 
 	JustBeforeEach(func() {
-		filePaths = []string{fileCalicoYaml, fileCalicoOverlayYaml, fileValuesYaml, fileValuesStar}
+		filePaths = []string{fileCalicoYaml, fileCalicoOverlayYaml, fileUpdateStrategyOverlayYaml, fileValuesYaml, fileValuesStar, fileSchemaYaml}
 		output, err = ytt.RenderYTTTemplate(ytt.CommandOptions{}, filePaths, strings.NewReader(values))
 	})
 
@@ -114,6 +116,10 @@ data:
 			Expect(envVarNames(containerEnvVars)).NotTo(ContainElement("IP6"))
 			Expect(envVarNames(containerEnvVars)).NotTo(ContainElement("CALICO_ROUTER_ID"))
 			Expect(envVarNames(containerEnvVars)).NotTo(ContainElement("CALICO_IPV6POOL_NAT_OUTGOING"))
+
+			installContainer := findInstallContainer(daemonSet)
+			Expect(installContainer.Name).NotTo(Equal(""))
+			Expect(envVarNames(installContainer.Env)).NotTo(ContainElement("SKIP_CNI_BINARIES"))
 		})
 
 		It("renders the DaemonSet and Deployment with desired annotations", func() {
@@ -128,7 +134,6 @@ data:
 	Context("customize mtu configuration", func() {
 		BeforeEach(func() {
 			values = `#@data/values
-#@overlay/match-child-defaults missing_ok=True
 ---
 infraProvider: vsphere
 calico:
@@ -200,6 +205,10 @@ data:
 			Expect(envVarNames(containerEnvVars)).NotTo(ContainElement("IP6"))
 			Expect(envVarNames(containerEnvVars)).NotTo(ContainElement("CALICO_ROUTER_ID"))
 			Expect(envVarNames(containerEnvVars)).NotTo(ContainElement("CALICO_IPV6POOL_NAT_OUTGOING"))
+
+			installContainer := findInstallContainer(daemonSet)
+			Expect(installContainer.Name).NotTo(Equal(""))
+			Expect(envVarNames(installContainer.Env)).NotTo(ContainElement("SKIP_CNI_BINARIES"))
 		})
 
 		It("renders the DaemonSet and Deployment with desired annotations", func() {
@@ -214,7 +223,6 @@ data:
 	Context("azure configuration with cidr", func() {
 		BeforeEach(func() {
 			values = `#@data/values
-#@overlay/match-child-defaults missing_ok=True
 ---
 infraProvider: azure
 calico:
@@ -291,7 +299,6 @@ data:
 	Context("IPv6 configuration", func() {
 		BeforeEach(func() {
 			values = `#@data/values
-#@overlay/match-child-defaults missing_ok=True
 ---
 ipFamily: ipv6
 calico:
@@ -338,7 +345,6 @@ data:
 	Context("IPv4,IPv6 dualstack configuration", func() {
 		BeforeEach(func() {
 			values = `#@data/values
-#@overlay/match-child-defaults missing_ok=True
 ---
 ipFamily: ipv4,ipv6
 calico:
@@ -385,7 +391,6 @@ data:
 	Context("IPv6,IPv4 dualstack configuration", func() {
 		BeforeEach(func() {
 			values = `#@data/values
-#@overlay/match-child-defaults missing_ok=True
 ---
 ipFamily: ipv6,ipv4
 calico:
@@ -428,6 +433,175 @@ data:
 			Expect(envVarNames(containerEnvVars)).NotTo(ContainElement("CALICO_ROUTER_ID"))
 		})
 	})
+
+	Context("contains deprecated fields", func() {
+		BeforeEach(func() {
+			values = `#@data/values
+---
+namespace: kube-system
+infraProvider: vsphere
+ipFamily: null
+calico:
+  config:
+    clusterCIDR: null
+  image:
+    repository: docker.io
+    pullPolicy: IfNotPresent
+  cniImage:
+    path: calico/cni
+    tag: 3.19.1
+  nodeImage:
+    path: calico/node
+    tag: 3.19.1
+  podDaemonImage:
+    path: calico/pod2daemon
+    tag: 3.19.1
+  kubeControllerImage:
+    path: calico/kube-controllers
+    tag: 3.19.1
+`
+		})
+		It("renders a ConfigMap with a default ipam configuration", func() {
+			Expect(err).NotTo(HaveOccurred())
+			Expect(output).To(MatchYAML(`---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: calico-config
+  namespace: kube-system
+data:
+  calico_backend: bird
+  cni_network_config: |-
+    {
+      "name": "k8s-pod-network",
+      "cniVersion": "0.3.1",
+      "plugins": [
+        {
+          "type": "calico",
+          "log_level": "info",
+          "log_file_path": "/var/log/calico/cni/cni.log",
+          "datastore_type": "kubernetes",
+          "nodename": "__KUBERNETES_NODE_NAME__",
+          "mtu": __CNI_MTU__,
+          "ipam": {
+              "type": "calico-ipam"
+          },
+          "policy": {
+              "type": "k8s"
+          },
+          "kubernetes": {
+              "kubeconfig": "__KUBECONFIG_FILEPATH__"
+          }
+        },
+        {
+          "type": "portmap",
+          "snat": true,
+          "capabilities": {"portMappings": true}
+        },
+        {
+          "type": "bandwidth",
+          "capabilities": {"bandwidth": true}
+        }
+      ]
+    }
+  typha_service_name: none
+  veth_mtu: "0"
+`))
+		})
+
+		It("renders a DaemonSet with container env settings", func() {
+			Expect(err).NotTo(HaveOccurred())
+			daemonSet := parseDaemonSet(output)
+			containerEnvVars := daemonSet.Spec.Template.Spec.Containers[0].Env
+			expectEnvVarValue(containerEnvVars, "IP", "autodetect")
+			expectEnvVarValue(containerEnvVars, "FELIX_IPV6SUPPORT", "false")
+			expectEnvVarValue(containerEnvVars, "CALICO_IPV4POOL_IPIP", "Always")
+			expectEnvVarValue(containerEnvVars, "CALICO_IPV4POOL_VXLAN", "Never")
+
+			Expect(envVarNames(containerEnvVars)).NotTo(ContainElement("CALICO_IPV4POOL_CIDR"))
+			Expect(envVarNames(containerEnvVars)).NotTo(ContainElement("CALICO_IPV6POOL_CIDR"))
+			Expect(envVarNames(containerEnvVars)).NotTo(ContainElement("IP6"))
+			Expect(envVarNames(containerEnvVars)).NotTo(ContainElement("CALICO_ROUTER_ID"))
+			Expect(envVarNames(containerEnvVars)).NotTo(ContainElement("CALICO_IPV6POOL_NAT_OUTGOING"))
+		})
+
+		It("renders the DaemonSet and Deployment with desired annotations", func() {
+			Expect(err).NotTo(HaveOccurred())
+			daemonSet := parseDaemonSet(output)
+			deployment := parseDeployment(output)
+			Expect(daemonSet.Annotations).To(Equal(desiredDaemonSetAnnotations))
+			Expect(deployment.Annotations).To(Equal(desiredDeploymentAnnotations))
+		})
+
+	})
+
+	Context("configures nodeSelector and updateStrategy", func() {
+		BeforeEach(func() {
+			values = `#@data/values
+---
+nodeSelector:
+  tanzuKubernetesRelease: 1.22.3
+deployment:
+  updateStrategy: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+daemonset:
+  updateStrategy: OnDelete
+`
+		})
+		It("renders the DaemonSet and Deployment with desired nodeSelector and updateStrategy", func() {
+			Expect(err).NotTo(HaveOccurred())
+			daemonSet := parseDaemonSet(output)
+			deployment := parseDeployment(output)
+			Expect(deployment.Spec.Template.Spec.NodeSelector).ToNot(BeNil())
+			Expect(deployment.Spec.Template.Spec.NodeSelector["tanzuKubernetesRelease"]).To(Equal("1.22.3"))
+			Expect(deployment.Spec.Strategy.Type).To(Equal(appsv1.RollingUpdateDeploymentStrategyType))
+			Expect(deployment.Spec.Strategy.RollingUpdate).ToNot(BeNil())
+			Expect(deployment.Spec.Strategy.RollingUpdate.MaxUnavailable.IntVal).To(Equal(int32(0)))
+			Expect(deployment.Spec.Strategy.RollingUpdate.MaxSurge.IntVal).To(Equal(int32(1)))
+			Expect(daemonSet.Spec.UpdateStrategy.Type).To(Equal(appsv1.OnDeleteDaemonSetStrategyType))
+		})
+	})
+
+	Context("contains invalid fields", func() {
+		BeforeEach(func() {
+			values = `#@data/values
+---
+infraProvider: vsphere
+ipFamily: null
+calico:
+  config:
+    clusterCIDR: null
+foo: bar
+`
+		})
+		It("failed to generate the manifests", func() {
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(ContainSubstring("Map item (key 'foo') on line stdin.yml"))
+			Expect(err).To(ContainSubstring("Expected number of matched nodes to be 1, but was 0"))
+		})
+	})
+
+	Context("Skip cni plugins installation", func() {
+		BeforeEach(func() {
+			values = `#@data/values
+---
+calico:
+  config:
+    skipCNIBinaries: true
+`
+		})
+
+		It("renders a DaemonSet with container env settings", func() {
+			Expect(err).NotTo(HaveOccurred())
+			daemonSet := parseDaemonSet(output)
+			installContainer := findInstallContainer(daemonSet)
+			Expect(installContainer.Name).NotTo(Equal(""))
+			expectEnvVarValue(installContainer.Env, "SKIP_CNI_BINARIES", "bandwidth,flannel,host-local,loopback,portmap,tuning")
+		})
+	})
+
 })
 
 func expectEnvVarValue(envVars []corev1.EnvVar, varName, expected string) {
@@ -465,4 +639,14 @@ func parseDeployment(output string) appsv1.Deployment {
 	err := yaml.Unmarshal([]byte(deploymentDoc), &deployment)
 	Expect(err).NotTo(HaveOccurred())
 	return deployment
+}
+
+func findInstallContainer(daemonSet appsv1.DaemonSet) corev1.Container {
+	initContainers := daemonSet.Spec.Template.Spec.InitContainers
+	for _, ic := range initContainers {
+		if ic.Name == "install-cni" {
+			return ic
+		}
+	}
+	return corev1.Container{}
 }

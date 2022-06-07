@@ -5,6 +5,24 @@
 ---
 #@schema/desc "The cloud provider in use. One of the following options => aws, azure, vsphere, docker"
 infraProvider: vsphere
+#@schema/desc "NodeSelector configuration applied to all the deployments"
+#@schema/type any=True
+nodeSelector:
+deployment:
+  #@schema/desc "Update strategy of deployments"
+  #@schema/nullable
+  updateStrategy: ""
+  rollingUpdate:
+    #@schema/desc "The maxUnavailable of rollingUpdate. Applied only if RollingUpdate is used as updateStrategy"
+    #@schema/nullable
+    maxUnavailable: 1
+    #@schema/desc "The maxSurge of rollingUpdate. Applied only if RollingUpdate is used as updateStrategy"
+    #@schema/nullable
+    maxSurge: 0
+daemonset:
+  #@schema/desc "Update strategy of daemonsets"
+  #@schema/nullable
+  updateStrategy: ""
 antrea:
   #@schema/desc "Configuration for antrea"
   config:
@@ -42,3 +60,13 @@ antrea:
       AntreaTraceflow: false
       #@schema/desc "Flag to enable/disable network policy stats"
       NetworkPolicyStats: false
+  #! Deprecated. Kept for backward compatibility
+  image:
+    #@schema/desc "The repository of antrea image"
+    repository: ""
+    #@schema/desc "The path of image"
+    path: ""
+    #@schema/desc "The image tag"
+    tag: ""
+    #@schema/desc "The pull policy of image"
+    pullPolicy: IfNotPresent

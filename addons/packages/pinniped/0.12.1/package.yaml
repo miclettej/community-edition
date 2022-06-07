@@ -12,7 +12,7 @@ spec:
     spec:
       fetch:
         - imgpkgBundle:
-            image: projects.registry.vmware.com/tce/pinniped@sha256:6116d5c41b0475b0c0f5a63e5fee23806cf1e672e161a20b1b5bce93a00434b2
+            image: projects.registry.vmware.com/tce/pinniped@sha256:211bbc5be32137ca0ec71202855894387ee3b78bacad9f04e27e579d3a6e43ed
       template:
         - ytt:
             paths:
@@ -23,4 +23,5 @@ spec:
               - kbld-config.yaml
               - .imgpkg/images.yml
       deploy:
-        - kapp: {}
+        - kapp:
+            rawOptions: ["--dangerous-allow-empty-list-of-resources=true"]

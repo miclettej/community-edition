@@ -1,7 +1,7 @@
 apiVersion: data.packaging.carvel.dev/v1alpha1
 kind: Package
 metadata:
-  name: kapp-controller.community.tanzu.vmware.com.0.34.0
+  name: kapp-controller.community.tanzu.vmware.com.0.35.0
 spec:
   refName: kapp-controller.community.tanzu.vmware.com
   version: 0.35.0
@@ -12,7 +12,7 @@ spec:
     spec:
       fetch:
         - imgpkgBundle:
-            image: projects.registry.vmware.com/tce/kapp-controller@sha256:a1d50ac793df19737fc0783215765416d14b708f2b70496565335f90a888c0f4
+            image: projects.registry.vmware.com/tce/kapp-controller@sha256:c77c8c0cae4ad62d3b7dc9889dcf3eff50398c71246bbb9f6c02b3f2c7ad5cd9
       template:
         - ytt:
             paths:
